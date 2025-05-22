@@ -1,65 +1,30 @@
-// const cloudinary = require('cloudinary').v2;
-// const fs =  require("fs")
-
-// cloudinary.config({ 
-//     cloud_name: process.env.CLOUDINARY_CLOUD_NAME , 
-//     api_key: process.env.CLOUDINARY_API_KEY , 
-//     api_secret: process.env.CLOUDINARY_API_SECRET  
-// });
-
-
+// cloudinary.js
 const cloudinary = require('cloudinary').v2;
-const fs = require("fs");
+const streamifier = require('streamifier');
 
-
-
-cloudinary.config({ 
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME, 
-  api_key: process.env.CLOUDINARY_API_KEY, 
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-const uploadOnCloudinary = async (localFilePath) => {
-  try {
-    if (!localFilePath) return null;
-
-    const response = await cloudinary.uploader.upload(localFilePath, {
-      resource_type: "video",
-      folder: "pothole-reports"
-    });
-
-    fs.unlinkSync(localFilePath); // Cleanup temp file
-    return response;
-  } catch (error) {
-    console.error("Cloudinary upload error:", error);
-    if (fs.existsSync(localFilePath)) fs.unlinkSync(localFilePath);
-    return null;
-  }
+const uploadOnCloudinary = async (fileBuffer) => {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        resource_type: 'video',
+        folder: 'pothole-reports'
+      },
+      (error, result) => {
+        if (result) {
+          resolve(result);
+        } else {
+          reject(error);
+        }
+      }
+    );
+    streamifier.createReadStream(fileBuffer).pipe(uploadStream);
+  });
 };
 
 module.exports = uploadOnCloudinary;
-
-
-
-    // async function run() {
-    //   try {
-    //     const result = await cloudinary.uploader.upload(file, {resource_type: "video"})
-    //     console.log(result.secure_url);
-  
-    //     const pothole = await Pothole.create({
-    //       videoUrl: result.secure_url,
-    //       location: {
-    //           type: 'Point',
-    //           coordinates: [lon, lat] // GeoJSON format: [longitude, latitude]
-    //       },
-    //       accuracy: isNaN(acc) ? undefined : acc,
-    //       timestamp: timestamp ? new Date(timestamp) : new Date()
-    //   })
-    //     console.log(pothole);
-  
-    //     res.status(200).json({message: "uploaded successfully", data: pothole})
-  
-    //   } catch (error) {
-    //     console.log(error);
-    //   }
-    // }

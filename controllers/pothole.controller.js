@@ -4,12 +4,11 @@ const asyncHandler = require("../utils/asyncHandler.js");
 const ApiError = require("../utils/ApiError.js");
 const ApiResponse = require("../utils/ApiResponse.js");
 
-exports.sendPotholeRecordingAndLocation = asyncHandler(async (req, res) => {
+exports.sendPotholeRecordingAndLocation = asynchandler(async (req, res) => {
   try {
     console.log("reached controller...");
 
     if (!req.file) {
-      console.log("No video file uploaded");
       throw new ApiError(400, 'No video file uploaded');
     }
 
@@ -27,11 +26,9 @@ exports.sendPotholeRecordingAndLocation = asyncHandler(async (req, res) => {
       throw new ApiError(400, "Invalid latitude or longitude");
     }
 
-    const videoFilePath = req.file.path;
-    console.log("Video file path:", videoFilePath);
+    console.log("Uploading video to Cloudinary...");
 
-    // Upload to Cloudinary using utility function
-    const cloudinaryResponse = await uploadOnCloudinary(videoFilePath);
+    const cloudinaryResponse = await uploadOnCloudinary(req.file.buffer); // 🔁 using buffer!
 
     if (!cloudinaryResponse || !cloudinaryResponse.secure_url) {
       throw new ApiError(500, "Video upload to Cloudinary failed");
@@ -41,26 +38,18 @@ exports.sendPotholeRecordingAndLocation = asyncHandler(async (req, res) => {
       videoUrl: cloudinaryResponse.secure_url,
       location: {
         type: 'Point',
-        coordinates: [lon, lat],
+        coordinates: [lon, lat]
       },
       accuracy: isNaN(acc) ? undefined : acc,
       timestamp: timestamp ? new Date(timestamp) : new Date()
     });
 
-    console.log(pothole);
+    console.log("Pothole saved:", pothole);
 
-    return res
-      .status(201)
-      .json(
-        new ApiResponse(
-          201,
-          pothole,
-          'Pothole reported successfully'
-        )
-      );
-
+    return res.status(201).json(new ApiResponse(201, pothole, 'Pothole reported successfully'));
   } catch (error) {
     console.error('Error in sendPotholeRecordingAndLocation:', error);
     throw new ApiError(500, "Internal server error");
   }
 });
+
