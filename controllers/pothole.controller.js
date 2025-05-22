@@ -4,7 +4,7 @@ const asyncHandler = require("../utils/asyncHandler.js");
 const ApiError = require("../utils/ApiError.js");
 const ApiResponse = require("../utils/ApiResponse.js");
 
-exports.sendPotholeRecordingAndLocation = asynchandler(async (req, res) => {
+exports.sendPotholeRecordingAndLocation = asyncHandler(async (req, res) => {
   try {
     console.log("reached controller...");
 
