@@ -4,11 +4,7 @@ require('dotenv').config();
 
 const app = express()
 
-app.use(cors({
-    origin: 'https://bbde-2405-201-a41d-601c-9bb-63c2-8b56-bc6d.ngrok-free.app',
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    credentials: true
-  }));
+app.use(cors());
 
 
 app.use(express.json())
